@@ -57,22 +57,22 @@ def add(n1, n2, base=10):
   d2 = n2 + [0 for _ in xrange(k - len(n2))]
   res = []
   carry = 0
-	"""Modified code to output carry-out sequence of the addition problem. Do not remove left-side zeros."""
+  """Modified code to output carry-out sequence of the addition problem. Do not remove left-side zeros."""
   for i in xrange(k):
-		g = 0
-		p = 0
+    g = 0
+    p = 0
 
-		if d1[i] + d2[i] >= base:
-			g = 1
+    if d1[i] + d2[i] >= base:
+      g = 1
 
-		if d1[i] + d2[i] == (base-1):
-			p = 1
+    if d1[i] + d2[i] == (base-1):
+      p = 1
 
-		c = g or (p and carry)
+    c = g or (p and carry)
 
-		res.append(c)
+    res.append(c)
 
-		carry = c
+    carry = c
 
   if res: return res
   return [0]
@@ -104,6 +104,84 @@ def init_data(task, length, nbr_cases, nclass):
     inp = [d + 1 for d in d1] + sep + [d + 1 for d in d2]
     return inp, [r + 1 for r in res]
 
+  """"Use the function below to produce stress data cases """ 
+  def rand_pair_stress(l, task):
+    """Random stress data pair for a task. Total length should be <= l."""
+    k = (l-1)/2
+    base = 10
+    if task[0] == "b": base = 2
+    if task[0] == "q": base = 4
+
+    d1 = [np.random.randint(base) for _ in xrange(k)]
+    d2 = [np.random.randint(base) for _ in xrange(k)]
+
+    # Flags if a carry-out sequence is happening
+    in_carry_seq = 0
+    # Flags if a carry-out sequence already happened
+    carry_seq_happened = 0
+
+    # Define the size of the carry-out sequence to be at least l/2
+    carry_seq_size = np.random.randint(k)
+    if carry_seq_size < k/2:
+      carry_seq_size = carry_seq_size + math.floor(k/2)
+
+    carry = 0
+
+    for i in xrange(k):
+      d2[i] = np.random.randint(base)
+
+      if carry_seq_happened == 0:
+        # Forces a carry-out sequence of at least carry_seq_size size
+        if in_carry_seq:
+          in_carry_seq = in_carry_seq + 1
+
+          while(d2[i]+d1[i]+1 <= base-1):
+            d2[i] = np.random.randint(base)
+
+          if (carry_seq_size - in_carry_seq) == 0:
+            carry_seq_happened = 1
+            in_carry_seq = 0
+
+        else:
+          # Check whether to start carry-out sequence
+          prob = np.random.uniform(0,1,1)
+
+          # Conditions are: 50% chance for each digit; 
+          # you must start at this digit otherwise there will be no room for the desired carry-out sequence;
+          if (prob[0] > 0.8) or (carry_seq_size - i == 1):
+            in_carry_seq = 1
+
+          # If yes, find a number that makes it possible to generate a carry
+          if in_carry_seq:
+            # Make sure d1[i] is different than zero, otherwise it will not generate a carry-out
+            while d1[i] == 0:
+              d1[i] = np.random.randint(base)
+            # Then, find a number that when added to d1[i] results in a carry-out
+            while (d2[i]+d1[i] <= base-1):
+              d2[i] = np.random.randint(base)
+
+      # Calculate whether there will be a carry-out
+      if d1[i] + d2[i] + carry > base - 1:
+        carry = 1
+      else:
+        carry = 0
+    
+    if task in ["add", "badd", "qadd"]:
+      res = add_carry_only(d1, d2, base)
+    elif task in ["mul", "bmul"]:
+      d1n = sum([d * (base ** i) for i, d in enumerate(d1)])
+      d2n = sum([d * (base ** i) for i, d in enumerate(d2)])
+      if task == "bmul":
+        res = [int(x) for x in list(reversed(str(bin(d1n * d2n))))[:-2]]
+      else:
+        res = [int(x) for x in list(reversed(str(d1n * d2n)))]
+    else:
+      sys.exit()
+    sep = [12]
+    if task in ["add", "badd", "qadd"]: sep = [11]
+    inp = [d + 1 for d in d1] + sep + [d + 1 for d in d2]
+    return inp, [r + 1 for r in res]
+  
   def rand_dup_pair(l):
     """Random data pair for duplication task. Total length should be <= l."""
     k = l/2
