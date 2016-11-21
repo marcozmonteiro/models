@@ -121,7 +121,11 @@ def init_data(task, length, nbr_cases, nclass):
     carry_seq_happened = 0
 
     # Define the size of the carry-out sequence to be at least l/2
-    carry_seq_size = np.random.randint(k)
+    if k > 0:
+      carry_seq_size = np.random.randint(k)
+    else:
+      carry_seq_size = 0
+
     if carry_seq_size < k/2:
       carry_seq_size = carry_seq_size + math.floor(k/2)
 

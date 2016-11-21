@@ -105,7 +105,7 @@ def init_data(task, length, nbr_cases, nclass):
     return inp, [r + 1 for r in res]
 
   """"Use the function below to produce stress data cases """ 
-  def rand_pair(l, task):
+  def rand_pair_stress(l, task):
     """Random stress data pair for a task. Total length should be <= l."""
     k = (l-1)/2
     base = 10
